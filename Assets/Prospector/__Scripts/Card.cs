@@ -91,7 +91,7 @@ public class Card : MonoBehaviour
 		print(name); // When clicked, this outputs the card name 
 	}
 
-	
+
 	// List of the SpriteRenderer Components of this GameObject and its children 
 	public SpriteRenderer[] spriteRenderers;
 
@@ -109,7 +109,7 @@ public class Card : MonoBehaviour
 	{
 
 	}
-	
+}
 
 	   [System.Serializable]
 	public class Decorator
@@ -128,4 +128,3 @@ public class Card : MonoBehaviour
 		public List<Decorator>
 						pips = new List<Decorator>();  // Pips Used
 	}
-}
