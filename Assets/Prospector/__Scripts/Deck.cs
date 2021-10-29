@@ -2,10 +2,13 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class Deck : MonoBehaviour {
+public class Deck : MonoBehaviour
+{
 
-[Header("Set in Inspector")]
+	[Header("Set in Inspector")]
 	//Suits
+	public bool startFaceUp = false;
+
 	public Sprite suitClub;
 	public Sprite suitDiamond;
 	public Sprite suitHeart;
@@ -35,6 +38,7 @@ public class Deck : MonoBehaviour {
 	public Transform					deckAnchor;
 	public Dictionary<string, Sprite>	dictSuits;
 
+	
 
 	// called by Prospector when it is ready
 	public void InitDeck(string deckXMLText) {
@@ -136,153 +140,214 @@ public class Deck : MonoBehaviour {
 		} // foreach
 		return (null);
 	}//GetCardDefinitionByRank
-	
-	
-	public void MakeCards() {
+
+
+	public void MakeCards()
+	{
 		// stub Add the code from page 577 here
 		cardNames = new List<string>();
-		string[] letters = new string[] {"C","D","H","S"};
-		foreach (string s in letters) {
-			for (int i =0; i<13; i++) {
-				cardNames.Add(s+(i+1));
+		string[] letters = new string[] { "C", "D", "H", "S" };
+		foreach (string s in letters)
+		{
+			for (int i = 0; i < 13; i++)
+			{
+				cardNames.Add(s + (i + 1));
 			}
 		}
-		
+
 		// list of all Cards
 		cards = new List<Card>();
-		
-		// temp variables
-		Sprite tS = null;
-		GameObject tGO = null;
-		SpriteRenderer tSR = null;  // so tempted to make a D&D ref here...
-		
-		for (int i=0; i<cardNames.Count; i++) {
+
+		for (int i = 0; i < cardNames.Count; i++)
+		{
+			// Make the card and add it to the cards Deck 
+			cards.Add(MakeCard(i));
+		}
+	}
+	private Card MakeCard(int cNum)
+    {
+
 			GameObject cgo = Instantiate(prefabCard) as GameObject;
 			cgo.transform.parent = deckAnchor;
 			Card card = cgo.GetComponent<Card>();
-			
-			cgo.transform.localPosition = new Vector3(i%13*3, i/13*4, 0);
-			
-			card.name = cardNames[i];
+
+			cgo.transform.localPosition = new Vector3(cNum % 13 * 3, cNum / 13 * 4, 0);
+
+			card.name = cardNames[cNum];
 			card.suit = card.name[0].ToString();
-			card.rank = int.Parse (card.name.Substring (1));
-			
-			if (card.suit =="D" || card.suit == "H") {
+			card.rank = int.Parse(card.name.Substring(1));
+
+			if (card.suit == "D" || card.suit == "H")
+			{
 				card.colS = "Red";
 				card.color = Color.red;
 			}
-			
+
 			card.def = GetCardDefinitionByRank(card.rank);
-			
-			// Add Decorators
-			foreach (Decorator deco in decorators) {
-				tGO = Instantiate(prefabSprite) as GameObject;
-				tSR = tGO.GetComponent<SpriteRenderer>();
-				if (deco.type == "suit") {
-					tSR.sprite = dictSuits[card.suit];
-				} else { // it is a rank
-					tS = rankSprites[card.rank];
-					tSR.sprite = tS;
-					tSR.color = card.color;
-				}
-				
-				tSR.sortingOrder = 1;                     // make it render above card
-				tGO.transform.parent = cgo.transform;     // make deco a child of card GO
-				tGO.transform.localPosition = deco.loc;   // set the deco's local position
-				
-				if (deco.flip) {
-					tGO.transform.rotation = Quaternion.Euler(0,0,180);
-				}
-				
-				if (deco.scale != 1) {
-					tGO.transform.localScale = Vector3.one * deco.scale;
-				}
-				
-				tGO.name = deco.type;
-				
-				card.decoGOs.Add (tGO);
-			} // foreach Deco
-			
-			
-			//Add the pips
-			foreach(Decorator pip in card.def.pips) {
-				tGO = Instantiate(prefabSprite) as GameObject;
-				tGO.transform.parent = cgo.transform; 
-				tGO.transform.localPosition = pip.loc;
-				
-				if (pip.flip) {
-					tGO.transform.rotation = Quaternion.Euler(0,0,180);
-				}
-				
-				if (pip.scale != 1) {
-					tGO.transform.localScale = Vector3.one * pip.scale;
-				}
-				
-				tGO.name = "pip";
-				tSR = tGO.GetComponent<SpriteRenderer>();
-				tSR.sprite = dictSuits[card.suit];
-				tSR.sortingOrder = 1;
-				card.pipGOs.Add (tGO);
+
+			AddDecorators(card);
+			AddPips(card);
+			AddFace(card);
+			AddBack(card);
+
+			 
+			return card;
+	}
+
+	private Sprite _tSp = null;
+	private GameObject _tGO = null;
+	private SpriteRenderer _tSR = null;
+
+
+	private void AddDecorators(Card card)
+	{
+		// Add Decorators 
+		foreach (Decorator deco in decorators)
+		{
+			if (deco.type == "suit")
+			{
+				// Instantiate a Sprite GameObject 
+				_tGO = Instantiate(prefabSprite) as GameObject;
+				// Get the SpriteRenderer Component 
+				_tSR = _tGO.GetComponent<SpriteRenderer>();
+				// Set the Sprite to the proper suit
+				_tSR.sprite = dictSuits[card.suit];
 			}
-			
-			//Handle face cards
-			if (card.def.face != "") {
-				tGO = Instantiate(prefabSprite) as GameObject;
-				tSR = tGO.GetComponent<SpriteRenderer>();
-				
-				tS = GetFace(card.def.face+card.suit);
-				tSR.sprite = tS;
-				tSR.sortingOrder = 1;
-				tGO.transform.parent=card.transform;
-				tGO.transform.localPosition = Vector3.zero;  // slap it smack dab in the middle
-				tGO.name = "face";
+			else
+			{
+				_tGO = Instantiate(prefabSprite) as GameObject;
+				_tSR = _tGO.GetComponent<SpriteRenderer>();
+				// Get the proper Sprite to show this rank 
+				_tSp = rankSprites[card.rank];
+				// Assign this rank Sprite to the SpriteRenderer 
+				_tSR.sprite = _tSp;
+				// Set the color of the rank to match the suit 
+				_tSR.color = card.color;
+			}
+			// Make the deco Sprites render above the Card 
+			_tSR.sortingOrder = 1;
+			// Make the decorator Sprite a child of the Card 
+			_tGO.transform.SetParent(card.transform);
+			// Set the localPosition based on the location from DeckXML 
+			_tGO.transform.localPosition = deco.loc;
+			// Flip the decorator if needed 
+			if (deco.flip)
+			{
+				// An Euler rotation of 180° around the Z-axis will flip it 
+				_tGO.transform.rotation = Quaternion.Euler(0, 0, 180);
+			}
+			// Set the scale to keep decos from being too big
+			if (deco.scale != 1)
+			{
+				_tGO.transform.localScale = Vector3.one * deco.scale;
+			}
+			// Name this GameObject so it's easy to see 
+			_tGO.name = deco.type;
+			// Add this deco GameObject to the List card.decoGOs 
+			card.decoGOs.Add(_tGO);
+		}
+	}
+
+
+		private void AddPips(Card card)
+		{
+			// For each of the pips in the definition... 
+			foreach (Decorator pip in card.def.pips)
+			{
+				// ...Instantiate a Sprite GameObject 
+				_tGO = Instantiate(prefabSprite) as GameObject;
+				// Set the parent to be the card GameObject 
+				_tGO.transform.SetParent(card.transform);
+				// Set the position to that specified in the XML 
+				_tGO.transform.localPosition = pip.loc;
+				// Flip it if necessary 
+				if (pip.flip)
+				{
+					_tGO.transform.rotation = Quaternion.Euler(0, 0, 180);
+				}
+				// Scale it if necessary (only for the Ace) 
+				if (pip.scale != 1)
+				{
+					_tGO.transform.localScale = Vector3.one * pip.scale;
+				}
+				// Give this GameObject a name 
+				_tGO.name = "pip";
+				// Get the SpriteRenderer Component 
+				_tSR = _tGO.GetComponent<SpriteRenderer>();
+				// Set the Sprite to the proper suit 
+				_tSR.sprite = dictSuits[card.suit];
+				// Set sortingOrder so the pip is rendered above the Card_Front 
+				_tSR.sortingOrder = 1;
+				// Add this to the Card's list of pips 
+				card.pipGOs.Add(_tGO);
+			}
+		}
+		private void AddFace(Card card)
+		{
+			if (card.def.face == "")
+			{
+				return; // No need to run if this isn't a face card 
+			}
+			_tGO = Instantiate(prefabSprite) as GameObject;
+			_tSR = _tGO.GetComponent<SpriteRenderer>();
+			// Generate the right name and pass it to GetFace() 
+			_tSp = GetFace(card.def.face + card.suit);
+			_tSR.sprite = _tSp;     // Assign this Sprite to _tSR 
+			_tSR.sortingOrder = 1;  // Set the sortingOrder 
+			_tGO.transform.SetParent(card.transform);
+			_tGO.transform.localPosition = Vector3.zero;
+			_tGO.name = "face";
+		}
+
+		//Find the proper face card
+		public Sprite GetFace(string faceS) {
+			foreach (Sprite tS in faceSprites) {
+				if (tS.name == faceS) {
+					return (tS);
+				}
+			}//foreach	
+			return (null);  // couldn't find the sprite (should never reach this line)
+		}// getFace 
+
+		private void AddBack(Card card)
+		{
+			// Add Card Back 
+			// The Card_Back will be able to cover everything else on the Card 
+			_tGO = Instantiate(prefabSprite) as GameObject;
+			_tSR = _tGO.GetComponent<SpriteRenderer>();
+			_tSR.sprite = cardBack;
+			_tGO.transform.SetParent(card.transform);
+			_tGO.transform.localPosition = Vector3.zero;
+			// This is a higher sortingOrder than anything else 
+			_tSR.sortingOrder = 2;
+			_tGO.name = "back";
+			card.back = _tGO;
+			// Default to face-up 
+			card.faceUp = startFaceUp; // Use the property faceUp of Card 
+		}
+
+
+		static public void Shuffle(ref List<Card> oCards)
+		{
+			List<Card> tCards = new List<Card>();
+
+			int ndx;   // which card to move
+
+			while (oCards.Count > 0)
+			{
+				// find a random card, add it to shuffled list and remove from original deck
+				ndx = Random.Range(0, oCards.Count);
+				tCards.Add(oCards[ndx]);
+				oCards.RemoveAt(ndx);
 			}
 
-			tGO = Instantiate(prefabSprite) as GameObject;
-			tSR = tGO.GetComponent<SpriteRenderer>();
-			tSR.sprite = cardBack;
-			tGO.transform.SetParent(card.transform);
-			tGO.transform.localPosition=Vector3.zero;
-			tSR.sortingOrder = 2;
-			tGO.name = "back";
-			card.back = tGO;
-			card.faceUp = false;
-			
-			cards.Add (card);
-		} // for all the Cardnames	
-	} // makeCards
-	
-	//Find the proper face card
-	public Sprite GetFace(string faceS) {
-		foreach (Sprite tS in faceSprites) {
-			if (tS.name == faceS) {
-				return (tS);
-			}
-		}//foreach	
-		return (null);  // couldn't find the sprite (should never reach this line)
-	 }// getFace 
+			oCards = tCards;
 
-	 static public void Shuffle(ref List<Card> oCards)
-	 {
-	 	List<Card> tCards = new List<Card>();
-
-	 	int ndx;   // which card to move
-
-	 	while (oCards.Count > 0) 
-	 	{
-	 		// find a random card, add it to shuffled list and remove from original deck
-	 		ndx = Random.Range(0,oCards.Count);
-	 		tCards.Add(oCards[ndx]);
-	 		oCards.RemoveAt(ndx);
-	 	}
-
-	 	oCards = tCards;
-
-	 	//because oCards is a ref parameter, the changes made are propogated back
-	 	//for ref paramters changes made in the function persist.
+			//because oCards is a ref parameter, the changes made are propogated back
+			//for ref paramters changes made in the function persist.
 
 
-	 }
+		}
 
+	}
 
-} // Deck class
