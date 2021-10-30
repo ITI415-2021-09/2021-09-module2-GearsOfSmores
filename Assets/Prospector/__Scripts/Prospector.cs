@@ -98,6 +98,7 @@ public class Prospector : MonoBehaviour
 		{
 			// ^ Iterate through all the SlotDefs in the layout.slotDefs as tSD 
 			cp = Draw(); // Pull a card from the top (beginning) of the draw Pile 
+			//cp.SetSortOrder(0);
 			cp.faceUp = tSD.faceUp;  // Set its faceUp to the value in SlotDef 
 			cp.transform.parent = layoutAnchor; // Make its parent layoutAnchor
 
