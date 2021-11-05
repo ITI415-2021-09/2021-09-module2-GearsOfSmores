@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 public class Prospector : MonoBehaviour
 {
-
+	
 	static public Prospector S;
 
 	[Header("Set in Inspector")]
@@ -21,6 +21,10 @@ public class Prospector : MonoBehaviour
 	public Vector2 fsPosRun = new Vector2(0.5f, 0.75f);
 	public Vector2 fsPosMid2 = new Vector2(0.4f, 1.0f);
 	public Vector2 fsPosEnd = new Vector2(0.5f, 0.95f);
+	public float reloadDelay = 2f;// 2 sec delay betwee
+	public Text gameOverText, roundResultText, highScoreText;
+	public bool prospectorScene;
+
 
 	[Header("Set Dynamically")]
 	public Deck deck;
@@ -37,12 +41,13 @@ public class Prospector : MonoBehaviour
 	void Awake()
 	{
 		S = this;
+		SetUpUITexts();
 	}
 
 	void Start()
 	{
 		ScoreBoard.S.score = ScoreManager.SCORE;
-
+		
 
 		deck = GetComponent<Deck>();   // Get the Deck 
 		deck.InitDeck(deckXML.text);   // Pass DeckXML to it  
@@ -60,8 +65,20 @@ public class Prospector : MonoBehaviour
 		drawPile = ConvertListCardsToListCardProspectors(deck.cards);
 		LayoutGame();
 	}
+    private void Update()
+    {
+		Scene scene = SceneManager.GetActiveScene();
+		if(scene.name == "__Prospector_Scene_0")
+        {
+			prospectorScene = true;
+        }
+        else
+        {
+			prospectorScene = false;
+        }
+    }
 
-	List<CardProspector> ConvertListCardsToListCardProspectors(List<Card> lCD)
+    List<CardProspector> ConvertListCardsToListCardProspectors(List<Card> lCD)
 	{
 		List<CardProspector> lCP = new List<CardProspector>();
 		CardProspector tCP;
@@ -292,14 +309,20 @@ public class Prospector : MonoBehaviour
 			return;
 		}
 		// Check for remaining valid plays 
-		foreach (CardProspector cd in tableau)
-		{
-			if (AdjacentRank(cd, target))
+		if(prospectorScene == true)
+        {
+			foreach (CardProspector cd in tableau)
 			{
-				// If there is a valid play, the game's not over 
-				return;
+				if (AdjacentRank(cd, target))
+				{
+					// If there is a valid play, the game's not over 
+					return;
+				}
 			}
 		}
+		else
+
+		
 		// Since there are no valid plays, the game is over 
 		// Call GameOver with a loss 
 		GameOver(false);
@@ -307,25 +330,57 @@ public class Prospector : MonoBehaviour
 	// Called when the game is over. Simple for now, but expandable 
 	void GameOver(bool won)
 	{
+		int score = ScoreManager.SCORE;
+		if (fsRun != null) score += fsRun.score;
+
+	
 		if (won)
 		{
-			//print("Game Over. You won! :)");
+			gameOverText.text = "Round Over";
+			roundResultText.text = "You won this round!\nRound Score: " + score;
+			ShowResultsUI(true);
+			// print ("Game Over. You won! :)");  // Comment out this line 
 			ScoreManager.EVENT(eScoreEvent.gameWin);
 			FloatingScoreHandler(eScoreEvent.gameWin);
-
 		}
 		else
 		{
-			//print("Game Over. You Lost. :(");
+			gameOverText.text = "Game Over";
+			if (ScoreManager.HIGH_SCORE <= score)
+			{
+				string str = "You got the high score!\nHigh score: " + score;
+				roundResultText.text = str;
+			}
+			else
+			{
+				roundResultText.text = "Your final score was: " + score;
+			}
+			ShowResultsUI(true);
+			// print ("Game Over. You Lost. :("); // Comment out this line 
 			ScoreManager.EVENT(eScoreEvent.gameLoss);
 			FloatingScoreHandler(eScoreEvent.gameLoss);
 
 		}
 		// Reload the scene, resetting the game 
-		SceneManager.LoadScene("__Prospector_Scene_0");
+		//SceneManager.LoadScene("__Prospector_Scene_0");
+		Invoke("ReloadLevel", reloadDelay);
+
+
 	}
 
-
+	void ReloadLevel()
+	{
+		Scene scene = SceneManager.GetActiveScene();
+		if(scene.name == "__Prospector_Scene_0")
+        {
+			SceneManager.LoadScene("__Prospector_Scene_0");
+		}
+        else
+        {
+			SceneManager.LoadScene("__BakersDozen_Scene_0");
+		}
+	
+	}
 
 	// Return true if the two cards are adjacent in rank (A & K wrap around) 
 	public bool AdjacentRank(CardProspector c0, CardProspector c1)
@@ -344,8 +399,40 @@ public class Prospector : MonoBehaviour
 		return (false);
 	}
 
+	void SetUpUITexts()
+    {
+		// Set up the HighScore UI Text 
+		GameObject go = GameObject.Find("HighScore");
+		if (go != null)
+		{
+			highScoreText = go.GetComponent<Text>();
+		}
+		int highScore = ScoreManager.HIGH_SCORE;
+		string hScore = "High Score: " + Utils.AddCommasToNumber(highScore);
+		go.GetComponent<Text>().text = hScore;
+		// Set up the UI Texts that show at the end of the round 
+		go = GameObject.Find("GameOver");
+		if (go != null)
+		{
+			gameOverText = go.GetComponent<Text>();
+		}
+		go = GameObject.Find("RoundResult");
+		if (go != null)
+		{
+			roundResultText = go.GetComponent<Text>();
+		}
+		// Make the end of round texts invisible 
+		ShowResultsUI(false);
+	}
+	void ShowResultsUI(bool show)
+	{
+		gameOverText.gameObject.SetActive(show);
+		roundResultText.gameObject.SetActive(show);
+	}
+
+
 	// Handle FloatingScore movement 
-	void FloatingScoreHandler(eScoreEvent evt)
+	   void FloatingScoreHandler(eScoreEvent evt)
 	{
 		List<Vector2> fsPts;
 		switch (evt)

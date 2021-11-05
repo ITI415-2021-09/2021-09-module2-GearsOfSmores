@@ -14,6 +14,7 @@ public class Card : MonoBehaviour
 	public List<GameObject> pipGOs = new List<GameObject>();
 
 	public GameObject back;  // back of card;
+	public GameObject greenBack;
 	public CardDefinition def;  // from DeckXML.xml		
 
 

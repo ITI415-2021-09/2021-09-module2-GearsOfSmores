@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 
 public class Deck : MonoBehaviour
 {
@@ -18,6 +19,7 @@ public class Deck : MonoBehaviour
 	public Sprite[] rankSprites;
 	
 	public Sprite cardBack;
+	public Sprite cardBackGreen;
 	public Sprite cardBackGold;
 	public Sprite cardFront;
 	public Sprite cardFrontGold;
@@ -37,11 +39,24 @@ public class Deck : MonoBehaviour
 	public List<CardDefinition>			cardDefs;
 	public Transform					deckAnchor;
 	public Dictionary<string, Sprite>	dictSuits;
-
+	public bool prospectorScene = true;
 	
 
-	// called by Prospector when it is ready
-	public void InitDeck(string deckXMLText) {
+
+    public void Update()
+    {
+		Scene scene = SceneManager.GetActiveScene();
+		if (scene.name == "__Prospector_Scene_0")
+        {
+			prospectorScene = true;
+        }
+		else
+        {
+			prospectorScene = false;
+        }
+    }
+    // called by Prospector when it is ready
+    public void InitDeck(string deckXMLText) {
 		// from page 576
 		if( GameObject.Find("_Deck") == null) {
 			GameObject anchorGO = new GameObject("_Deck");
@@ -315,7 +330,14 @@ public class Deck : MonoBehaviour
 			// The Card_Back will be able to cover everything else on the Card 
 			_tGO = Instantiate(prefabSprite) as GameObject;
 			_tSR = _tGO.GetComponent<SpriteRenderer>();
-			_tSR.sprite = cardBack;
+			if(prospectorScene == true)
+			{
+				_tSR.sprite = cardBackGreen;
+			}
+			else
+			{
+				_tSR.sprite = cardBackGreen;
+			}
 			_tGO.transform.SetParent(card.transform);
 			_tGO.transform.localPosition = Vector3.zero;
 			// This is a higher sortingOrder than anything else 
