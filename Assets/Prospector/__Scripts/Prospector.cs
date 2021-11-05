@@ -309,20 +309,50 @@ public class Prospector : MonoBehaviour
 			return;
 		}
 		// Check for remaining valid plays 
-		if(prospectorScene == true)
-        {
+		if (prospectorScene == false)
+		{
 			foreach (CardProspector cd in tableau)
 			{
-				if (AdjacentRank(cd, target))
+
+				bool covered = false; // Assume the card will be available 
+				foreach (CardProspector cover in cd.hiddenBy)
+				{
+					// If either of the covering cards are in the tableau 
+					if (cover.state == eCardState.tableau)
+					{
+						covered = true; // then this card is face-down 
+					}
+				}
+
+				if (!covered && AdjacentRank(cd, target))
 				{
 					// If there is a valid play, the game's not over 
 					return;
 				}
 			}
 		}
-		else
+		else if (prospectorScene == true)
+		{
+			foreach (CardProspector cd in tableau)
+			{
 
-		
+				bool covered = false; // Assume the card will be available 
+				foreach (CardProspector cover in cd.hiddenBy)
+				{
+					// If either of the covering cards are in the tableau 
+					if (cover.state == eCardState.tableau)
+					{
+						covered = true; // then this card is face-down 
+					}
+				}
+
+				if (!covered && AdjacentRank(cd, target))
+				{
+					// If there is a valid play, the game's not over 
+					return;
+				}
+			}
+		}	
 		// Since there are no valid plays, the game is over 
 		// Call GameOver with a loss 
 		GameOver(false);
