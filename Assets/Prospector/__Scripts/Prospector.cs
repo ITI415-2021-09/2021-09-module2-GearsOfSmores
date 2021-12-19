@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 public class Prospector : MonoBehaviour
 {
-	
+
 	static public Prospector S;
 
 	[Header("Set in Inspector")]
@@ -47,7 +47,7 @@ public class Prospector : MonoBehaviour
 	void Start()
 	{
 		ScoreBoard.S.score = ScoreManager.SCORE;
-		
+
 
 		deck = GetComponent<Deck>();   // Get the Deck 
 		deck.InitDeck(deckXML.text);   // Pass DeckXML to it  
@@ -65,20 +65,20 @@ public class Prospector : MonoBehaviour
 		drawPile = ConvertListCardsToListCardProspectors(deck.cards);
 		LayoutGame();
 	}
-    private void Update()
-    {
+	private void Update()
+	{
 		Scene scene = SceneManager.GetActiveScene();
-		if(scene.name == "__Prospector_Scene_0")
-        {
+		if (scene.name == "__Prospector_Scene_0")
+		{
 			prospectorScene = true;
-        }
-        else
-        {
+		}
+		else
+		{
 			prospectorScene = false;
-        }
-    }
+		}
+	}
 
-    List<CardProspector> ConvertListCardsToListCardProspectors(List<Card> lCD)
+	List<CardProspector> ConvertListCardsToListCardProspectors(List<Card> lCD)
 	{
 		List<CardProspector> lCP = new List<CardProspector>();
 		CardProspector tCP;
@@ -115,7 +115,7 @@ public class Prospector : MonoBehaviour
 		{
 			// ^ Iterate through all the SlotDefs in the layout.slotDefs as tSD 
 			cp = Draw(); // Pull a card from the top (beginning) of the draw Pile 
-			//cp.SetSortOrder(0);
+						 //cp.SetSortOrder(0);
 			cp.faceUp = tSD.faceUp;  // Set its faceUp to the value in SlotDef 
 			cp.transform.parent = layoutAnchor; // Make its parent layoutAnchor
 
@@ -352,7 +352,7 @@ public class Prospector : MonoBehaviour
 					return;
 				}
 			}
-		}	
+		}
 		// Since there are no valid plays, the game is over 
 		// Call GameOver with a loss 
 		GameOver(false);
@@ -363,7 +363,7 @@ public class Prospector : MonoBehaviour
 		int score = ScoreManager.SCORE;
 		if (fsRun != null) score += fsRun.score;
 
-	
+
 		if (won)
 		{
 			gameOverText.text = "Round Over";
@@ -401,15 +401,15 @@ public class Prospector : MonoBehaviour
 	void ReloadLevel()
 	{
 		Scene scene = SceneManager.GetActiveScene();
-		if(scene.name == "__Prospector_Scene_0")
-        {
+		if (scene.name == "__Prospector_Scene_0")
+		{
 			SceneManager.LoadScene("__Prospector_Scene_0");
 		}
-        else
-        {
+		else
+		{
 			SceneManager.LoadScene("__BakersDozen_Scene_0");
 		}
-	
+
 	}
 
 	// Return true if the two cards are adjacent in rank (A & K wrap around) 
@@ -430,7 +430,7 @@ public class Prospector : MonoBehaviour
 	}
 
 	void SetUpUITexts()
-    {
+	{
 		// Set up the HighScore UI Text 
 		GameObject go = GameObject.Find("HighScore");
 		if (go != null)
@@ -462,7 +462,7 @@ public class Prospector : MonoBehaviour
 
 
 	// Handle FloatingScore movement 
-	   void FloatingScoreHandler(eScoreEvent evt)
+	void FloatingScoreHandler(eScoreEvent evt)
 	{
 		List<Vector2> fsPts;
 		switch (evt)
